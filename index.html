@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blink Comparator Simulator</title>
+
+<link rel="stylesheet" href="foundation/kl-unl.css" media="all">
+<link rel="stylesheet" href="styles/styles.css" media="all">
+
+<script>
+/* MathJax configuration: must be defined before the (locally hosted) MathJax
+   bundle loads. The contextual menu stays enabled (right-click any typeset
+   math for "Show Math As..."). */
+window.MathJax = {
+  options: { enableMenu: true },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="assets/mathjax/tex-svg.js" defer></script>
+<script src="foundation/kl-unl.js" defer></script>
+<script src="foundation/kl-unl-masthead.js" defer></script>
+<script src="assets/settings-data.js" defer></script>
+<script src="simulation.js" defer></script>
+</head>
+<body>
+<div class="app-shell bcs">
+
+  <kl-unl-masthead sim-id="blinkComparatorSimulator" json-url="foundation/contents.json"></kl-unl-masthead>
+
+  <main class="app-layout bcs-layout">
+
+    <!-- Left panel: the star field ("Blink Comparator" in the original) -->
+    <section class="panel app-layout__left bcs-panel" aria-labelledby="bcsFieldHeading">
+      <h2 class="panel__heading" id="bcsFieldHeading">Blink Comparator</h2>
+
+      <div class="panel__canvas-wrap bcs-stage" id="bcsStage">
+        <canvas id="bcsFieldCanvas" width="400" height="300"
+                role="application"
+                aria-roledescription="star field viewer"
+                tabindex="0"
+                aria-label="Star field image. Use the arrow keys to move a crosshair and hear pixel coordinates; hold Shift to move ten pixels at a time."
+                aria-describedby="bcsCanvasDesc"></canvas>
+        <p class="bcs-empty" id="bcsQueueEmpty">queue is empty</p>
+
+        <!-- Pointer-following coordinate readout (reuses the exported Flash
+             tooltip artwork). Purely visual: the same information is exposed
+             to assistive tech through the live region and canvas keyboard
+             support, so the tooltip itself is aria-hidden. -->
+        <div class="bcs-crosshair" id="bcsCrosshair" hidden aria-hidden="true">
+          <img class="bcs-crosshair__art" src="assets/crosshair-tooltip.svg" alt="">
+          <span class="bcs-crosshair__row bcs-crosshair__row--x"><span class="bcs-crosshair__label" id="bcsCrosshairXLabel"></span><span id="bcsCrosshairXValue">888</span></span>
+          <span class="bcs-crosshair__row bcs-crosshair__row--y"><span class="bcs-crosshair__label" id="bcsCrosshairYLabel"></span><span id="bcsCrosshairYValue">888</span></span>
+        </div>
+      </div>
+
+      <div class="bcs-under-field">
+        <p class="bcs-epoch">epoch of field above:&nbsp;<span class="bcs-epoch__value" id="bcsEpochField">...</span></p>
+        <div class="control-choice bcs-crosshair-choice">
+          <input type="checkbox" id="bcsShowCrosshairs" checked>
+          <label for="bcsShowCrosshairs">show crosshairs</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right panel: queue management ("Blinking Queue Controls") -->
+    <section class="panel app-layout__right bcs-panel" aria-labelledby="bcsQueueHeading">
+      <h2 class="panel__heading" id="bcsQueueHeading">Blinking Queue Controls</h2>
+
+      <div class="bcs-queues">
+        <div class="bcs-list">
+          <label class="bcs-list__label" for="bcsObservationsList" id="bcsObsLabel">observations list:</label>
+          <button type="button" class="bcs-list__sort" id="bcsObsSort"
+                  aria-label="epoch column: sort the observations list by epoch">epoch<span class="bcs-list__sort-arrow" id="bcsObsSortArrow" aria-hidden="true"></span></button>
+          <select id="bcsObservationsList" class="bcs-list__box" multiple size="10"
+                  aria-describedby="bcsObsHint"></select>
+          <span class="sr-only" id="bcsObsHint">Multiple observations can be selected. Press Enter or use the add button to add the selected observations to the blinking queue. Observations already in the queue are disabled.</span>
+        </div>
+
+        <div class="bcs-transfer">
+          <span class="bcs-transfer__arrow bcs-transfer__arrow--fwd" aria-hidden="true"></span>
+          <button type="button" class="button bcs-button" id="bcsAddButton"
+                  aria-label="add the selected observations to the blinking queue">add</button>
+          <button type="button" class="button bcs-button" id="bcsRemoveButton"
+                  aria-label="remove the selected observations from the blinking queue">remove</button>
+          <span class="bcs-transfer__arrow bcs-transfer__arrow--back" aria-hidden="true"></span>
+        </div>
+
+        <div class="bcs-list">
+          <label class="bcs-list__label" for="bcsQueueList" id="bcsQueueLabel">blinking queue:</label>
+          <button type="button" class="bcs-list__sort" id="bcsQueueSort"
+                  aria-label="epoch column: sort the blinking queue by epoch">epoch<span class="bcs-list__sort-arrow" id="bcsQueueSortArrow" aria-hidden="true"></span></button>
+          <select id="bcsQueueList" class="bcs-list__box" multiple size="10"
+                  aria-describedby="bcsQueueHint"></select>
+          <span class="sr-only" id="bcsQueueHint">Press Enter to display the selected observation in the blink comparator. The observation currently displayed is marked with a dot.</span>
+        </div>
+      </div>
+
+      <div class="button-row bcs-playrow">
+        <button type="button" class="button bcs-button" id="bcsBackButton"
+                aria-label="show the previous observation in the queue">&lt;</button>
+        <button type="button" class="button bcs-button bcs-button--play" id="bcsPlayButton">blink</button>
+        <button type="button" class="button bcs-button" id="bcsForwardButton"
+                aria-label="show the next observation in the queue">&gt;</button>
+      </div>
+
+      <div class="control-row bcs-raterow">
+        <label class="control-row__label" for="bcsSpeedSlider">rate:</label>
+        <input type="range" class="control-row__slider bcs-raterow__slider" id="bcsSpeedSlider"
+               min="1" max="10" step="0.1" value="5"
+               aria-valuetext="blink rate 5 of 10">
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Screen-reader plumbing: live status region + continuously updated
+       description of what the canvas currently shows. -->
+  <p class="sr-only" id="bcsLiveRegion" role="status" aria-live="polite"></p>
+  <p class="sr-only" id="bcsCanvasDesc"></p>
+  <p class="sr-only" id="bcsEqnMsg"></p>
+
+</div>
+</body>
+</html>

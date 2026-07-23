@@ -1,0 +1,340 @@
+/* Blink Comparator Simulator - sim-specific styles.
+   Layered on top of foundation/kl-unl.css (which is never modified).
+   All shared palette values come from the KL-UNL custom properties. */
+
+/* ---------------------------------------------------------------- shell -- */
+
+.bcs {
+  /* Readable body-copy floor (WCAG 1.4.4 friendly, rem-based so it tracks
+     the user's browser font setting). */
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.bcs-layout {
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+/* Near-equal columns (like the original stage) with the star-field panel a
+   touch wider. Scoped to wide viewports only so the foundation's own 56rem
+   collapse to a single column (in kl-unl.css, which loads before this sheet)
+   is never overridden. align-items: stretch forces both panels to the same
+   height, so their bottom edges always line up regardless of content. */
+@media (min-width: 56.0625rem) {
+  .bcs-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+.bcs-panel {
+  border-width: var(--border-width, 1px);
+  border-style: var(--border-style, solid);
+  border-color: var(--border-color, #767676);
+  /* Flex column so the panel's own content can expand to fill the shared
+     (stretched) height and keep the bottom row pinned to the bottom edge. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------ left panel -- */
+
+.bcs-stage {
+  position: relative;
+  padding: 0 1rem;
+  /* Grow to absorb the panel's stretched height and centre the (aspect-
+     locked) star field vertically, so the under-field row sits at the panel
+     bottom and lines up with the right panel's bottom control row. */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#bcsFieldCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 400 / 300;   /* keeps layout height when hidden          */
+  border-width: var(--border-width, 1px);
+  border-style: var(--border-style, solid);
+  border-color: var(--border-color, #767676);
+  box-sizing: border-box;
+  background: var(--background-color, #ffffff);
+}
+
+.bcs-stage--empty #bcsFieldCanvas {
+  visibility: hidden;          /* original: starField.visible = false      */
+}
+
+.bcs-empty {
+  /* "queue is empty" static text from the original stage */
+  display: none;
+  position: absolute;
+  top: 45%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.bcs-stage--empty .bcs-empty {
+  display: block;
+}
+
+/* Pointer-following coordinate tooltip (reused exported Flash artwork).
+   Anchored so the artwork's crosshair point (24, 49 within the 48 x 49.8
+   graphic) sits exactly on the reported field pixel. */
+
+.bcs-crosshair {
+  position: absolute;
+  width: 48px;
+  height: 50px;
+  margin-left: -24px;
+  margin-top: -49px;
+  pointer-events: none;
+  line-height: normal;
+}
+
+.bcs-crosshair__art {
+  position: absolute;
+  inset: 0;
+  width: 48px;
+  height: 50px;
+}
+
+.bcs-crosshair__row {
+  position: absolute;
+  left: 7px;
+  right: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--foreground-color, #1a1a1a);
+}
+
+.bcs-crosshair__row--x { top: 2px; }
+.bcs-crosshair__row--y { top: 16px; }
+
+.bcs-crosshair__label {
+  display: inline-block;
+  margin-right: 3px;
+}
+
+.bcs-under-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.bcs-epoch {
+  margin: 0;
+}
+
+.bcs-epoch__value {
+  display: inline-block;
+  min-width: 4.5rem;
+}
+
+/* ----------------------------------------------------------- right panel -- */
+
+.bcs-queues {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: stretch;
+  padding: 0.25rem 1rem 0;
+  /* Fill the panel's stretched height so the list boxes grow and the play /
+     rate rows are pushed to the bottom edge (aligning with the left panel). */
+  flex: 1 1 auto;
+}
+
+.bcs-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bcs-list__label {
+  padding-bottom: 0.35rem;
+}
+
+/* "epoch" column header, matching the original DataGrid's sortable header */
+.bcs-list__sort {
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  padding: 0.35rem 0.6rem;
+  min-height: 2.75rem;
+  color: var(--foreground-color, #1a1a1a);
+  background: #efefef;
+  border-width: var(--border-width, 1px);
+  border-style: var(--border-style, solid);
+  border-color: var(--border-color, #767676);
+  border-bottom: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bcs-list__sort-arrow {
+  font-size: 0.8em;
+}
+
+.bcs-list__box {
+  font: inherit;
+  font-size: 1rem;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 14rem;
+  padding: 0;
+  color: var(--foreground-color, #1a1a1a);
+  background: var(--background-color, #ffffff);
+  border-width: var(--border-width, 1px);
+  border-style: var(--border-style, solid);
+  border-color: var(--border-color, #767676);
+}
+
+.bcs-list__box option {
+  padding: 0.2rem 0.6rem;
+}
+
+/* Lighten the browser's default (dark) selected-option highlight so it reads
+   as a soft tint rather than a heavy gray block. The forced color pair keeps
+   the row legible when the select is focused as well as unfocused. */
+.bcs-list__box option:checked {
+  background: #e4e8ec;
+  color: var(--foreground-color, #1a1a1a);
+}
+
+.bcs-list__box option.bcs-option--displayed {
+  /* red marker dot for the currently displayed queue item; the glyph itself
+     (not just its color) carries the meaning */
+  color: var(--alert-color-r, #ea351f);
+  font-weight: bold;
+}
+
+/* Keep the displayed-item red on a selected row too (order-independent). */
+.bcs-list__box option.bcs-option--displayed:checked {
+  background: #e4e8ec;
+  color: var(--alert-color-r, #ea351f);
+}
+
+/* Middle transfer column: add / remove, with the original exported arrow
+   artwork reused as decoration (split via background-position). */
+
+.bcs-transfer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 2.5rem;
+}
+
+.bcs-transfer__arrow {
+  width: 46px;
+  height: 14px;
+  background-image: url("../assets/arrows.svg");
+  background-repeat: no-repeat;
+}
+
+.bcs-transfer__arrow--fwd  { background-position: center top; }
+.bcs-transfer__arrow--back { background-position: center bottom; }
+
+/* ------------------------------------------------------------- controls -- */
+
+.bcs-button {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--button-foreground-color, #ffffff);
+  background: var(--button-background-color, #005a9c);
+  border-width: var(--border-width, 1px);
+  border-style: var(--border-style, solid);
+  border-color: var(--border-color, #767676);
+  border-radius: 4px;
+}
+
+.bcs-button:hover:enabled {
+  filter: brightness(var(--button-hover-darken, 0.9));
+}
+
+.bcs-button:disabled {
+  color: #f0f0f0;
+  background: #8a8a8a;
+  cursor: not-allowed;
+}
+
+.bcs-playrow {
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.25rem 1rem 0;
+  box-sizing: border-box;
+}
+
+.bcs-button--play {
+  min-width: 8.5rem;
+}
+
+.bcs-raterow {
+  grid-template-columns: auto minmax(0, 14rem);
+  justify-content: center;
+  padding: 0.75rem 1rem 1.25rem;
+  margin-bottom: 0;
+}
+
+.bcs-raterow__slider {
+  width: 100%;
+  min-height: 2.75rem;   /* comfortable touch target */
+  margin: 0;
+}
+
+/* MathJax output is display-only: it must never join the tab order.
+   (simulation.js also enforces tabindex="-1" after typesetting.) */
+.bcs mjx-container {
+  outline: none;
+}
+
+/* --------------------------------------------------------- responsiveness -- */
+
+/* Below the foundation's 56rem collapse, panels stack full width.
+   Tighten the sim-specific grids for narrow / phone-portrait widths. */
+@media (max-width: 40rem) {
+  .bcs-queues {
+    grid-template-columns: 1fr;
+  }
+
+  .bcs-transfer {
+    flex-direction: row;
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .bcs-transfer__arrow {
+    display: none;   /* decorative only; direction is given by the buttons */
+  }
+
+  .bcs-list__box {
+    min-height: 12rem;
+  }
+
+  .bcs-playrow {
+    flex-wrap: wrap;
+  }
+}
+
+/* Respect reduced-motion preferences: the sim has no autonomous animation
+   (blinking only runs on explicit user request and has a stop button), and
+   no transitions are used that would need suppressing. */
+@media (prefers-reduced-motion: reduce) {
+  .bcs * {
+    transition: none !important;
+  }
+}
